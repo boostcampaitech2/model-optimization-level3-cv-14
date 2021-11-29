@@ -129,7 +129,7 @@ def objective(trial: optuna.trial.Trial, device) -> Tuple[float, int, float]:
     ###### model #######
     #model_config: Dict[str, Any] = {}
     #mobilenet_small_torch
-    with open('./configs/model/mobilenet_small.yaml') as f:
+    with open('./configs/model/mobilenet_small_torch.yaml') as f:
         model_config = yaml.load(f,yaml.SafeLoader)
     #Search space 정의 / suggest_categorical 사용
     #model_config["input_channel"] = 3
