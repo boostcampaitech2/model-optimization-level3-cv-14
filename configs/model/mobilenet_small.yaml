@@ -1,0 +1,10 @@
+input_channel: 3
+
+depth_multiple: 1
+width_multiple: 1
+
+backbone:
+    # [repeat, module, args]
+    [
+        [1, MobileNetV3, []],
+    ]
