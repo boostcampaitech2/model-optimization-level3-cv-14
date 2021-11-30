@@ -118,7 +118,6 @@ def objective(trial: optuna.trial.Trial, device) -> Tuple[float, int, float]:
     #}
     data_config["AUG_TEST_PARAMS"] = None
     data_config["BATCH_SIZE"] = hyperparams["BATCH_SIZE"]
-    data_config["VAL_RATIO"] = 0.8
     data_config["IMG_SIZE"] = hyperparams["IMG_SIZE"]
     wandb.log({
         'hyperparams/VAL_RATIO':data_config["VAL_RATIO"]
@@ -233,7 +232,7 @@ def main(gpu_id,storage:str=None):
         storage=rdb_storage,
         load_if_exists=True,
     )
-    study.optimize(lambda trial: objective(trial,device), n_trials=1) #objective 함수를 n_trials번 만큼 시도
+    study.optimize(lambda trial: objective(trial,device), n_trials=3) #objective 함수를 n_trials번 만큼 시도
 
     #시도 후 결과 분석
     pruned_trials = [
@@ -264,7 +263,7 @@ def main(gpu_id,storage:str=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="tuning model with Optuna")
     parser.add_argument("--gpu", default=0, type=int, help="GPU id to use")
-    parser.add_argument("--storage", default="", type=str, help="Optuna database storage path.")
+    parser.add_argument("--storage", default="postgresql://optuna:optuna@118.67.132.41:6013/optuna", type=str, help="Optuna database storage path.")
     parser.add_argument("--exp_name",default="exp1")
     parser.add_argument("--seed",default=21)
     args = parser.parse_args()
@@ -274,3 +273,9 @@ if __name__ == "__main__":
 
     main(args.gpu,storage=args.storage if args.storage!="" else None)
     # postgresql://postgres:sohee@127.0.0.1:5432/Optuna
+
+#how to check current study info on postgre
+#study = optuna.create_study(study_name='automl1',storage="postgresql://optuna:optuna@118.67.132.41:6013/optuna",load_if_exists=True,directions=["maximize", "minimize", "minimize"])
+#study.trials
+#study.trials[0]
+#study.best_trials
