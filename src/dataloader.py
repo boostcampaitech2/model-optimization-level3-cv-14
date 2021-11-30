@@ -84,7 +84,8 @@ def get_dataset(
     label_weights = None
     # pytorch dataset
     if dataset_name == "TACO":
-        train_path = os.path.join(data_path, "train")
+        #train_path = os.path.join(data_path, "train")
+        train_path = os.path.join(data_path,"train_split")
         val_path = os.path.join(data_path, "val")
         test_path = os.path.join(data_path, "test")
 
