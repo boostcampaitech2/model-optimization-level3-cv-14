@@ -83,13 +83,12 @@ def get_best_trial_with_condition(optuna_study: optuna.study.Study) -> Dict[str,
 
 
 def search_hyperparam(trial:optuna.trial.Trial) -> Dict[str,Any]:
-    #epochs = trial.suggest_int("epochs", low=50, high=100, step=50)
-    #img_size = trial.suggest_categorical("img_size", [168, 224]) #112
-    epochs=100
-    img_size=168
-    batch_size=32
+    epochs = trial.suggest_int("epochs", low=100, high=150, step=50)
+    img_size = trial.suggest_categorical("img_size", [168, 224]) #112
+    #epochs=100
+    #batch_size=32
     n_select = trial.suggest_int("n_select", low=0, high=2, step=2)
-    #batch_size = trial.suggest_int("batch_size", low=16, high=32, step=16)
+    batch_size = trial.suggest_int("batch_size", low=16, high=32, step=16)
     return {
         "EPOCHS": epochs,
         "IMG_SIZE": img_size,
@@ -132,8 +131,8 @@ def objective(trial: optuna.trial.Trial, device) -> Tuple[float, int, float]:
         model_config = yaml.load(f,yaml.SafeLoader)
     #Search space 정의 / suggest_categorical 사용
     #model_config["input_channel"] = 3
-    img_size = 32 #trial.suggest_categorical("img_size", [32, 64, 128])
-    # model_config["INPUT_SIZE"] = [img_size, img_size]
+    im_size = trial.suggest_categorical("im_size", [32, 64, 128]) #img_size=32
+    model_config["INPUT_SIZE"] = [im_size, im_size]
     # model_config["depth_multiple"] = trial.suggest_categorical(
     #     "depth_multiple", [0.25, 0.5, 0.75, 1.0]
     # )
@@ -149,22 +148,15 @@ def objective(trial: optuna.trial.Trial, device) -> Tuple[float, int, float]:
     new_model_dict.update(state_dict)
 
     model_instance.model.load_state_dict(new_model_dict)
-    # for name, param in model_instance.model.state_dict().items():
-    #     if ("classifier" in name) or ("linear" in name):
-    #         param.requires_grad = True
-    #         print(name)
-    #     else:
-    #         param.requires_grad = False
-
     model_instance.model.to(device)
     #model.model.to(device) #??
     model_info(model_instance.model)
-    # mean_time = check_runtime( #모델에서 이미지 1장 처리하는데 걸리는 시간
-    #     model.model,
-    #     [model_config["input_channel"]] + model_config["INPUT_SIZE"],
-    #     device,
-    # )
-    mean_time = 0.0
+    mean_time = check_runtime( #모델에서 이미지 1장 처리하는데 걸리는 시간
+        model_instance.model,
+        [model_config["input_channel"]] + model_config["INPUT_SIZE"],
+        device,
+    )
+    #mean_time = 0.0
     wandb.log({
         'model_config/trial':trial.number,
         'model_config/input_channel':model_config["input_channel"],
@@ -227,12 +219,12 @@ def main(gpu_id,storage:str=None):
 
     study = optuna.create_study(
         directions=["maximize", "minimize", "minimize"], #왜 이렇게 3개?
-        study_name="automl1",
+        study_name="automl2",
         sampler=sampler,
         storage=rdb_storage,
         load_if_exists=True,
     )
-    study.optimize(lambda trial: objective(trial,device), n_trials=3) #objective 함수를 n_trials번 만큼 시도
+    study.optimize(lambda trial: objective(trial,device), n_trials=15) #objective 함수를 n_trials번 만큼 시도
 
     #시도 후 결과 분석
     pruned_trials = [
