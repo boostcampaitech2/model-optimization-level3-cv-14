@@ -4,4 +4,4 @@ input
 prediction
 __pycache__
 *.pt
-
+*.csv
